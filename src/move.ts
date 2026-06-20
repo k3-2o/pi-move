@@ -67,8 +67,10 @@ async function switchToNewSession(targetDir: string, ctx: ExtensionCommandContex
   ctx.ui.notify(`Moving to ${targetDir}...`, "info");
 
   try {
-    const currentSessionDir = ctx.sessionManager.getSessionDir();
-    const newSession = SessionManager.create(targetDir, currentSessionDir);
+    // Create session in the target directory's own session folder.
+    // This keeps cwd and sessionDir consistent so usesDefaultSessionDir()
+    // returns true, and /resume Tab correctly calls listAll().
+    const newSession = SessionManager.create(targetDir);
     const sessionFile = newSession.getSessionFile();
 
     if (!sessionFile) {
@@ -76,8 +78,6 @@ async function switchToNewSession(targetDir: string, ctx: ExtensionCommandContex
       return;
     }
 
-    // SessionManager.create() doesn't write the file. Must write it manually
-    // so switchSession can read the cwd from the header.
     const sessionId = newSession.getSessionId();
     const header = {
       type: "session",
@@ -87,8 +87,10 @@ async function switchToNewSession(targetDir: string, ctx: ExtensionCommandContex
       cwd: targetDir,
     };
 
-    if (!fs.existsSync(currentSessionDir)) {
-      fs.mkdirSync(currentSessionDir, { recursive: true });
+    // Ensure the target session directory exists
+    const sessionDir = newSession.getSessionDir();
+    if (!fs.existsSync(sessionDir)) {
+      fs.mkdirSync(sessionDir, { recursive: true });
     }
 
     fs.writeFileSync(sessionFile, JSON.stringify(header) + "\n", "utf-8");
