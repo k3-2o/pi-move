@@ -1,6 +1,28 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
+
+// Simple directory listing cache with TTL
+const cacheTTL = 500;
+const dirCache = new Map<string, { time: number; entries: string[] }>();
+
+function readDirCached(dir: string): string[] {
+  const now = Date.now();
+  const cached = dirCache.get(dir);
+  if (cached && now - cached.time < cacheTTL) return cached.entries;
+  try {
+    const entries = fs.readdirSync(dir);
+    dirCache.set(dir, { time: now, entries });
+    return entries;
+  } catch {
+    return [];
+  }
+}
+
+export function prefetchDirectory(dir: string): void {
+  readDirCached(dir);
+}
+
 export function resolveDirectory(input: string, cwd: string): string | null {
   let resolved = input;
   if (input.startsWith("~/") || input === "~") {
@@ -23,92 +45,84 @@ export function findDirectories(
 ): Array<{ value: string; label: string; description?: string }> {
   const resolved = resolveDirectory(prefix, cwd);
   if (resolved !== null && fs.statSync(resolved).isDirectory()) {
-    return listDirectoryContents(resolved, maxResults);
+    return listContents(resolved, maxResults);
   }
-  const searchDir = getSearchBase(prefix, cwd);
-  const query = getQuery(prefix);
-  return searchDirectories(searchDir, query, maxResults);
+  return search(prefix, cwd, maxResults);
 }
 
-function listDirectoryContents(
+function listContents(
   dirPath: string,
-  maxResults: number,
-): Array<{ value: string; label: string; description?: string }> {
-  try {
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-    const results: Array<{ value: string; label: string; description?: string }> = [];
-    for (const entry of entries) {
-      if (results.length >= maxResults) break;
-      if (entry.name.startsWith(".")) continue;
-      let isDir: boolean;
-      try {
-        isDir = entry.isDirectory();
-        if (!isDir && entry.isSymbolicLink())
-          isDir = fs.statSync(path.join(dirPath, entry.name)).isDirectory();
-      } catch {
-        continue;
-      }
-      if (isDir) {
-        const fullPath = path.join(dirPath, entry.name);
-        results.push({ value: fullPath, label: entry.name + "/", description: fullPath });
-      }
-    }
-    results.sort((a, b) => a.label.localeCompare(b.label));
-    return results;
-  } catch {
-    return [];
-  }
-}
-
-function searchDirectories(
-  baseDir: string,
-  query: string,
   maxResults: number,
 ): Array<{ value: string; label: string; description?: string }> {
   const results: Array<{ value: string; label: string; description?: string }> = [];
   try {
-    const entries = fs.readdirSync(baseDir, { withFileTypes: true });
-    const lowerQuery = query.toLowerCase();
-    for (const entry of entries) {
+    const names = readDirCached(dirPath);
+    for (const name of names) {
+      if (results.length >= maxResults) break;
+      if (name.startsWith(".")) continue;
+      let isDir: boolean;
+      try {
+        const full = path.join(dirPath, name);
+        const stat = fs.statSync(full);
+        isDir = stat.isDirectory();
+        if (!isDir && stat.isSymbolicLink()) isDir = fs.statSync(full).isDirectory();
+      } catch {
+        continue;
+      }
+      if (isDir) {
+        const full = path.join(dirPath, name);
+        results.push({ value: full, label: name + "/", description: full });
+      }
+    }
+    results.sort((a, b) => a.label.localeCompare(b.label));
+  } catch { /* dir not accessible */ }
+  return results;
+}
+
+function search(
+  prefix: string,
+  cwd: string,
+  maxResults: number,
+): Array<{ value: string; label: string; description?: string }> {
+  const results: Array<{ value: string; label: string; description?: string }> = [];
+  let baseDir = cwd;
+  let query = prefix;
+
+  if (prefix && prefix !== "~") {
+    const norm = prefix.replace(/\\/g, "/");
+    const idx = norm.lastIndexOf("/");
+    if (idx !== -1) {
+      const base = norm.slice(0, idx + 1);
+      query = norm.slice(idx + 1);
+      if (base.startsWith("~")) baseDir = path.join(os.homedir(), base.slice(1));
+      else if (path.isAbsolute(base)) baseDir = base;
+      else baseDir = path.resolve(cwd, base);
+    }
+  }
+
+  const lower = query.toLowerCase();
+  try {
+    const names = readDirCached(baseDir);
+    for (const name of names) {
       if (results.length >= maxResults) break;
       let isDir: boolean;
       try {
-        isDir = entry.isDirectory();
-        if (!isDir && entry.isSymbolicLink())
-          isDir = fs.statSync(path.join(baseDir, entry.name)).isDirectory();
+        const full = path.join(baseDir, name);
+        const stat = fs.statSync(full);
+        isDir = stat.isDirectory();
+        if (!isDir && stat.isSymbolicLink()) isDir = fs.statSync(full).isDirectory();
       } catch {
         continue;
       }
       if (!isDir) continue;
-      if (query === "" || entry.name.toLowerCase().includes(lowerQuery)) {
+      if (!query || name.toLowerCase().includes(lower)) {
         results.push({
-          value: path.join(baseDir, entry.name),
-          label: entry.name + "/",
-          description: path.join(baseDir, entry.name),
+          value: path.join(baseDir, name),
+          label: name + "/",
+          description: path.join(baseDir, name),
         });
       }
     }
-  } catch {
-    /* directory not accessible */
-  }
+  } catch { /* dir not accessible */ }
   return results;
-}
-
-function getSearchBase(prefix: string, cwd: string): string {
-  if (prefix === "" || prefix === "~") return cwd;
-  const normalized = prefix.replace(/\\/g, "/");
-  const lastSlash = normalized.lastIndexOf("/");
-  if (lastSlash === -1) return cwd;
-  const basePart = normalized.slice(0, lastSlash + 1);
-  if (basePart.startsWith("~")) return path.join(os.homedir(), basePart.slice(1));
-  if (path.isAbsolute(basePart)) return basePart;
-  return path.resolve(cwd, basePart);
-}
-
-function getQuery(prefix: string): string {
-  if (prefix === "" || prefix === "~") return "";
-  const normalized = prefix.replace(/\\/g, "/");
-  const lastSlash = normalized.lastIndexOf("/");
-  if (lastSlash === -1) return normalized;
-  return normalized.slice(lastSlash + 1);
 }

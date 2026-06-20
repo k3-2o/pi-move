@@ -6,7 +6,7 @@ import {
   sliceByColumn,
   visibleWidth,
 } from "@earendil-works/pi-tui";
-import { findDirectories } from "./utils.js";
+import { findDirectories, prefetchDirectory } from "./utils.js";
 
 export interface MoveOverlayResult {
   directory: string;
@@ -31,6 +31,7 @@ export class MoveOverlay implements Focusable {
     this.theme = theme;
     this.cwd = cwd;
     this.done = done;
+    prefetchDirectory(cwd);
     this.updateResults();
   }
 
