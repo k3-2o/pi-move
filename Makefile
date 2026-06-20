@@ -4,17 +4,17 @@
 
 fmt:
 	@echo "=== Formatting with Prettier ==="
-	npx prettier --write '*.ts'
+	npx prettier --write '{index.ts,src/*.ts}'
 
 fmt-check:
 	@echo "=== Checking format with Prettier ==="
-	npx prettier --check '*.ts'
+	npx prettier --check '{index.ts,src/*.ts}'
 
 # --- Linting ---
 
 lint:
 	@echo "=== Linting with ESLint ==="
-	npx eslint '*.ts'
+	npx eslint 'index.ts' 'src/*.ts'
 
 # --- Type Checking ---
 

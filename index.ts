@@ -2,7 +2,7 @@
 
 import * as fs from "node:fs";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { handleMoveCommand } from "./move.js";
+import { handleMoveCommand } from "./src/move.js";
 
 export default function piMoveExtension(pi: ExtensionAPI): void {
   // --- Lifecycle: session_shutdown ---
@@ -32,7 +32,7 @@ export default function piMoveExtension(pi: ExtensionAPI): void {
   pi.registerCommand("move", {
     description:
       "Move to a different directory — starts a fresh Pi session in the target directory",
-    getArgumentCompletions: (_argumentPrefix: string) => {
+    getArgumentCompletions: (_argumentPrefix: string): null => {
       // We don't use inline arg completion — the overlay handles it
       return null;
     },
