@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": false,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "declaration": false,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@earendil-works/pi-coding-agent": [
+        "/home/k2/node_modules/@earendil-works/pi-coding-agent/dist/index.d.ts"
+      ],
+      "@earendil-works/pi-coding-agent/*": [
+        "/home/k2/node_modules/@earendil-works/pi-coding-agent/dist/*.d.ts"
+      ],
+      "@earendil-works/pi-tui": [
+        "/home/k2/node_modules/@earendil-works/pi-coding-agent/node_modules/@earendil-works/pi-tui/dist/index.d.ts"
+      ],
+      "@earendil-works/pi-tui/*": [
+        "/home/k2/node_modules/@earendil-works/pi-coding-agent/node_modules/@earendil-works/pi-tui/dist/*.d.ts"
+      ]
+    }
+  },
+  "include": ["*.ts", "scripts/**/*.ts"],
+  "exclude": ["node_modules", "dist", "tests"]
+}

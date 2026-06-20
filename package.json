@@ -1,0 +1,30 @@
+{
+  "name": "pi-move",
+  "version": "0.1.0",
+  "description": "Pi extension — /move command with directory popup overlay",
+  "keywords": ["pi-package", "extension", "directory", "navigation"],
+  "author": "k3_2o",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k3-2o/pi-move.git"
+  },
+  "type": "module",
+  "scripts": {
+    "fmt": "prettier --write '*.ts'",
+    "fmt:check": "prettier --check '*.ts'",
+    "lint": "eslint '*.ts'",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run fmt:check && npm run lint && npm run typecheck",
+    "security": "npm audit --audit-level=high"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0"
+  },
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
