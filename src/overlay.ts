@@ -141,7 +141,7 @@ export class MoveOverlay implements Focusable {
     this._updateTimeout = setTimeout(() => {
       this.updateResults();
       this._updateTimeout = undefined;
-    }, 80);
+    }, 50);
   }
 
   private updateResults(): void {
