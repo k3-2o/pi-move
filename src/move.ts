@@ -31,7 +31,10 @@ export async function handleMoveCommand(args: string, ctx: ExtensionCommandConte
   if (target !== null) await switchToNewSession(target, ctx);
 }
 
-async function resolveOrCreateDirectory(input: string, ctx: ExtensionCommandContext): Promise<string | null> {
+async function resolveOrCreateDirectory(
+  input: string,
+  ctx: ExtensionCommandContext,
+): Promise<string | null> {
   const resolved = resolveDirectory(input, ctx.cwd);
   if (resolved !== null) return resolved;
 
@@ -46,19 +49,28 @@ async function resolveOrCreateDirectory(input: string, ctx: ExtensionCommandCont
 
   const parentDir = path.dirname(targetPath);
   if (!fs.existsSync(parentDir)) {
-    ctx.ui.notify(`Cannot create "${path.basename(targetPath)}": parent directory does not exist`, "error");
+    ctx.ui.notify(
+      `Cannot create "${path.basename(targetPath)}": parent directory does not exist`,
+      "error",
+    );
     return null;
   }
 
   const basename = path.basename(targetPath);
-  const confirmed = await ctx.ui.confirm("Create directory?", `"${basename}" does not exist. Create it?`);
+  const confirmed = await ctx.ui.confirm(
+    "Create directory?",
+    `"${basename}" does not exist. Create it?`,
+  );
   if (!confirmed) return null;
 
   try {
     fs.mkdirSync(targetPath, { recursive: true });
     return targetPath;
   } catch (err) {
-    ctx.ui.notify(`Failed to create directory: ${err instanceof Error ? err.message : String(err)}`, "error");
+    ctx.ui.notify(
+      `Failed to create directory: ${err instanceof Error ? err.message : String(err)}`,
+      "error",
+    );
     return null;
   }
 }

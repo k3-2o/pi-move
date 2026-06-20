@@ -1,5 +1,11 @@
 import type { Theme } from "@earendil-works/pi-coding-agent";
-import { CURSOR_MARKER, type Focusable, matchesKey, sliceByColumn, visibleWidth } from "@earendil-works/pi-tui";
+import {
+  CURSOR_MARKER,
+  type Focusable,
+  matchesKey,
+  sliceByColumn,
+  visibleWidth,
+} from "@earendil-works/pi-tui";
 import { findDirectories } from "./utils.js";
 
 export interface MoveOverlayResult {
@@ -29,8 +35,14 @@ export class MoveOverlay implements Focusable {
   }
 
   handleInput(data: string): void {
-    if (matchesKey(data, "escape")) { this.done(undefined); return; }
-    if (matchesKey(data, "return")) { this.confirmSelection(); return; }
+    if (matchesKey(data, "escape")) {
+      this.done(undefined);
+      return;
+    }
+    if (matchesKey(data, "return")) {
+      this.confirmSelection();
+      return;
+    }
 
     if (matchesKey(data, "up") && this.results.length > 0) {
       this.selectedIndex = Math.max(0, this.selectedIndex - 1);
@@ -60,8 +72,14 @@ export class MoveOverlay implements Focusable {
       return;
     }
 
-    if (matchesKey(data, "left")) { this.cursor = Math.max(0, this.cursor - 1); return; }
-    if (matchesKey(data, "right")) { this.cursor = Math.min(this.input.length, this.cursor + 1); return; }
+    if (matchesKey(data, "left")) {
+      this.cursor = Math.max(0, this.cursor - 1);
+      return;
+    }
+    if (matchesKey(data, "right")) {
+      this.cursor = Math.min(this.input.length, this.cursor + 1);
+      return;
+    }
 
     if (data.length === 1 && data.charCodeAt(0) >= 32) {
       this.input = this.input.slice(0, this.cursor) + data + this.input.slice(this.cursor);
@@ -153,8 +171,14 @@ export class MoveOverlay implements Focusable {
 
   private confirmSelection(): void {
     const selectedItem = this.results[this.selectedIndex];
-    if (selectedItem) { this.done({ directory: selectedItem.value }); return; }
-    if (this.input.trim().length > 0) { this.done({ directory: this.input.trim() }); return; }
+    if (selectedItem) {
+      this.done({ directory: selectedItem.value });
+      return;
+    }
+    if (this.input.trim().length > 0) {
+      this.done({ directory: this.input.trim() });
+      return;
+    }
     this.done(undefined);
   }
 }
