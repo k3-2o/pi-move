@@ -1,5 +1,7 @@
 # pi-move
 
+[![npm](https://img.shields.io/npm/v/@k3_2o/pi-move)](https://www.npmjs.com/package/@k3_2o/pi-move)
+
 A Pi extension that adds `/move` — switch to a fresh Pi session in any directory
 from inside Pi. No quitting.
 
