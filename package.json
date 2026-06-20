@@ -1,14 +1,10 @@
 {
-  "name": "pi-move",
+  "name": "@k3_2o/pi-move",
   "version": "0.1.0",
-  "description": "Pi extension — /move command with directory popup overlay",
+  "description": "Pi extension — /move command to switch directories from inside Pi",
   "keywords": ["pi-package", "extension", "directory", "navigation"],
   "author": "k3_2o",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/k3-2o/pi-move.git"
-  },
   "type": "module",
   "scripts": {
     "fmt": "prettier --write '*.ts'",
@@ -23,6 +19,13 @@
     "prettier": "^3.5.3",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k3-2o/pi-move.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "pi": {
     "extensions": ["./index.ts"]

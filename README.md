@@ -25,7 +25,7 @@ no need to exit to make a new directory for your project
 ## Install
 
 ```bash
-pi install pi-move
+pi install @k3_2o/pi-move
 # or
 pi install git:github.com/k3-2o/pi-move
 ```
