@@ -1,5 +1,5 @@
 import type { Theme } from "@earendil-works/pi-coding-agent";
-import { CURSOR_MARKER, type Focusable, matchesKey, visibleWidth } from "@earendil-works/pi-tui";
+import { CURSOR_MARKER, type Focusable, matchesKey, sliceByColumn, visibleWidth } from "@earendil-works/pi-tui";
 import { findDirectories } from "./utils.js";
 
 export interface MoveOverlayResult {
@@ -86,7 +86,7 @@ export class MoveOverlay implements Focusable {
       const vis = visibleWidth(content);
       return (
         th.fg("border", "│") +
-        (vis > innerW ? content.slice(0, innerW) : pad(content, innerW)) +
+        (vis > innerW ? sliceByColumn(content, 0, innerW) : pad(content, innerW)) +
         th.fg("border", "│")
       );
     };
@@ -141,7 +141,7 @@ export class MoveOverlay implements Focusable {
     this._updateTimeout = setTimeout(() => {
       this.updateResults();
       this._updateTimeout = undefined;
-    }, 150);
+    }, 80);
   }
 
   private updateResults(): void {
