@@ -6,7 +6,9 @@ export default function piMoveExtension(pi: ExtensionAPI): void {
   // Clean up empty move sessions when leaving them.
   // Uses in-memory entries (always current — appended before persist)
   // and only deletes sessions with no real user/assistant messages.
-  pi.on("session_shutdown", (_event, ctx) => {
+  pi.on("session_shutdown", (event, ctx) => {
+    // Never delete on reload — the user is coming back, not leaving.
+    if (event.reason === "reload") return;
     const entries = ctx.sessionManager.getEntries();
     const hasRealMessages = entries.some(
       (e) => e.type === "message" && (e.message.role === "user" || e.message.role === "assistant"),

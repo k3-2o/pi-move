@@ -75,7 +75,9 @@ function listContents(
       }
     }
     results.sort((a, b) => a.label.localeCompare(b.label));
-  } catch { /* dir not accessible */ }
+  } catch {
+    /* dir not accessible */
+  }
   return results;
 }
 
@@ -123,6 +125,8 @@ function search(
         });
       }
     }
-  } catch { /* dir not accessible */ }
+  } catch {
+    /* dir not accessible */
+  }
   return results;
 }
