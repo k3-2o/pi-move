@@ -1,6 +1,6 @@
 {
   "name": "@k3_2o/pi-move",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Pi extension — /move command to switch directories from inside Pi",
   "keywords": ["pi-package", "extension", "directory", "navigation"],
   "author": "k3_2o",
