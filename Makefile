@@ -37,7 +37,7 @@ security:
 
 smoke:
 	@echo "=== Smoke test ==="
-	bun -e "import('./src/index.ts').then(() => console.log('SMOKE OK')).catch(e => { console.error(e); process.exit(1); })"
+	bun -e "import('./index.ts').then(() => console.log('SMOKE OK')).catch(e => { console.error(e); process.exit(1); })"
 
 # --- Install ---
 
