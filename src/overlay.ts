@@ -16,6 +16,7 @@ export interface MoveOverlayResult {
 export class MoveOverlay implements Focusable {
   /** Preferred overlay width. The render pass clamps to the terminal. */
   readonly width = 72;
+  /** Preferred floor — yields to the terminal when it is narrower. */
   readonly minWidth = 44;
   readonly maxWidth = 72;
   readonly maxResults = 15;
@@ -35,6 +36,7 @@ export class MoveOverlay implements Focusable {
 
   // Render cache
   private cachedWidth?: number;
+  private cachedFocused?: boolean;
   private cachedLines?: string[];
 
   constructor(theme: Theme, cwd: string, done: (result: MoveOverlayResult | undefined) => void) {
@@ -126,8 +128,8 @@ export class MoveOverlay implements Focusable {
   // ---------- rendering ----------
 
   render(termWidth: number): string[] {
-    const w = Math.max(this.minWidth, Math.min(this.maxWidth, termWidth));
-    if (this.cachedLines && this.cachedWidth === w) {
+    const w = Math.max(1, Math.min(this.maxWidth, termWidth));
+    if (this.cachedLines && this.cachedWidth === w && this.cachedFocused === this.focused) {
       return this.cachedLines;
     }
 
@@ -202,6 +204,7 @@ export class MoveOverlay implements Focusable {
     lines.push(border(`╰${"─".repeat(innerW)}╯`));
 
     this.cachedWidth = w;
+    this.cachedFocused = this.focused;
     this.cachedLines = lines;
     return lines;
   }
@@ -218,6 +221,7 @@ export class MoveOverlay implements Focusable {
 
   private invalidateCache(): void {
     this.cachedWidth = undefined;
+    this.cachedFocused = undefined;
     this.cachedLines = undefined;
   }
 
@@ -295,8 +299,15 @@ export class MoveOverlay implements Focusable {
 
   private renderTopBorder(innerW: number): string {
     const th = this.theme;
-    const title = ` ${this.title} `;
-    const titleW = visibleWidth(title);
+    let title = ` ${this.title} `;
+    let titleW = visibleWidth(title);
+    // On very narrow terminals the title itself may not fit — truncate it so
+    // the border always closes at exactly innerW + 2 columns.
+    const maxTitleW = innerW - 2;
+    if (titleW > maxTitleW) {
+      title = truncateToWidth(title, Math.max(1, maxTitleW), "...", true);
+      titleW = visibleWidth(title);
+    }
     // Center the title. Title is pure ASCII, so visibleWidth always matches
     // what the terminal draws — the top border can never drift off the box.
     let leftDash = Math.max(1, Math.floor((innerW - titleW) / 2));
@@ -319,7 +330,9 @@ export class MoveOverlay implements Focusable {
     const th = this.theme;
     const prompt = th.fg("accent", "  Path: ");
     const promptW = visibleWidth(prompt);
-    const availW = Math.max(1, innerW - promptW);
+    const availW = innerW - promptW;
+    // Degenerate widths: if the prompt alone fills the row, clip it and stop.
+    if (availW <= 0) return truncateToWidth(prompt, innerW, "", true);
 
     // Horizontal scroll so the cursor never drifts off-screen.
     let offset = this.inputScrollOffset;
