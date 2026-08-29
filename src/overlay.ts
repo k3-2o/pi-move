@@ -19,7 +19,7 @@ export class MoveOverlay implements Focusable {
   readonly minWidth = 44;
   readonly maxWidth = 72;
   readonly maxResults = 15;
-  private readonly title = "📂 Move to directory";
+  private readonly title = "Move to directory";
 
   focused = false;
 
@@ -297,13 +297,20 @@ export class MoveOverlay implements Focusable {
     const th = this.theme;
     const title = ` ${this.title} `;
     const titleW = visibleWidth(title);
-    const leadDashW = 1;
-    const tailDashCount = Math.max(1, innerW - leadDashW - titleW);
+    // Center the title. Title is pure ASCII, so visibleWidth always matches
+    // what the terminal draws — the top border can never drift off the box.
+    let leftDash = Math.max(1, Math.floor((innerW - titleW) / 2));
+    let rightDash = innerW - titleW - leftDash;
+    if (rightDash < 1) {
+      // Degenerate widths: fall back to left-aligned so the border still closes.
+      leftDash = 1;
+      rightDash = Math.max(1, innerW - titleW - leftDash);
+    }
     return (
       th.fg("border", "╭") +
-      th.fg("border", "─") +
+      th.fg("border", "─".repeat(leftDash)) +
       th.fg("accent", title) +
-      th.fg("border", "─".repeat(tailDashCount)) +
+      th.fg("border", "─".repeat(rightDash)) +
       th.fg("border", "╮")
     );
   }
