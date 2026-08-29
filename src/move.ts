@@ -99,11 +99,8 @@ async function switchToNewSession(targetDir: string, ctx: ExtensionCommandContex
       cwd: targetDir,
     };
 
-    // Ensure the target session directory exists
-    const sessionDir = newSession.getSessionDir();
-    if (!fs.existsSync(sessionDir)) {
-      fs.mkdirSync(sessionDir, { recursive: true });
-    }
+    // recursive: true is a no-op when the directory already exists
+    fs.mkdirSync(newSession.getSessionDir(), { recursive: true });
 
     fs.writeFileSync(sessionFile, JSON.stringify(header) + "\n", "utf-8");
     await ctx.switchSession(sessionFile);
