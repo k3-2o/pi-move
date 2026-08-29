@@ -1,8 +1,13 @@
 {
   "name": "@k3_2o/pi-move",
   "version": "0.1.6",
-  "description": "Pi extension — /move command to switch directories from inside Pi",
-  "keywords": ["pi-package", "extension", "directory", "navigation"],
+  "description": "Pi extension \u2014 /move command to switch directories from inside Pi",
+  "keywords": [
+    "pi-package",
+    "extension",
+    "directory",
+    "navigation"
+  ],
   "author": "k3_2o",
   "license": "MIT",
   "type": "module",
@@ -15,6 +20,7 @@
     "security": "npm audit --audit-level=high"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "eslint": "^9.0.0",
     "prettier": "^3.5.3",
     "typescript": "^5.7.0",
@@ -28,6 +34,12 @@
     "access": "public"
   },
   "pi": {
-    "extensions": ["./index.ts"]
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
   }
 }
