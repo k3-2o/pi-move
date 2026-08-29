@@ -12,8 +12,19 @@ export interface DirEntry {
 // Two-level cache so repeated keystrokes never touch the filesystem.
 // Level 1: raw dirents. Level 2: built & sorted DirEntry[] (dirs only).
 const cacheTTL = 500;
+// pi sessions can run for days — cap the caches so they cannot grow forever.
+// Maps keep insertion order, so dropping from the front evicts the oldest.
+const maxCachedDirs = 64;
 const direntCache = new Map<string, { time: number; entries: fs.Dirent[] }>();
 const subdirCache = new Map<string, { time: number; entries: DirEntry[] }>();
+
+function evictOverCapacity<T>(map: Map<string, T>): void {
+  while (map.size > maxCachedDirs) {
+    const oldest = map.keys().next().value;
+    if (oldest === undefined) break;
+    map.delete(oldest);
+  }
+}
 
 function readDirCached(dir: string): fs.Dirent[] {
   const now = Date.now();
@@ -22,6 +33,7 @@ function readDirCached(dir: string): fs.Dirent[] {
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     direntCache.set(dir, { time: now, entries });
+    evictOverCapacity(direntCache);
     return entries;
   } catch {
     return [];
@@ -42,6 +54,7 @@ function readSubdirsCached(dir: string): DirEntry[] {
   }
   sortEntries(subdirs);
   subdirCache.set(dir, { time: now, entries: subdirs });
+  evictOverCapacity(subdirCache);
   return subdirs;
 }
 
