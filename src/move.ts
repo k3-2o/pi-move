@@ -79,9 +79,7 @@ async function switchToNewSession(targetDir: string, ctx: ExtensionCommandContex
   ctx.ui.notify(`Moving to ${targetDir}...`, "info");
 
   try {
-    // Create session in the target directory's own session folder.
-    // This keeps cwd and sessionDir consistent so usesDefaultSessionDir()
-    // returns true, and /resume Tab correctly calls listAll().
+    // So usesDefaultSessionDir() holds and /resume Tab lists this session.
     const newSession = SessionManager.create(targetDir);
     const sessionFile = newSession.getSessionFile();
 

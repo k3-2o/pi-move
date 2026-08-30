@@ -9,11 +9,9 @@ export interface DirEntry {
   description?: string;
 }
 
-// Two-level cache so repeated keystrokes never touch the filesystem.
-// Level 1: raw dirents. Level 2: built & sorted DirEntry[] (dirs only).
+// Two-level dirent cache (raw + built/sorted) so repeated keystrokes never touch the fs.
 const cacheTTL = 500;
-// pi sessions can run for days — cap the caches so they cannot grow forever.
-// Maps keep insertion order, so dropping from the front evicts the oldest.
+// pi sessions run for days — cap at maxCachedDirs with FIFO eviction (Maps keep insertion order).
 const maxCachedDirs = 64;
 const direntCache = new Map<string, { time: number; entries: fs.Dirent[] }>();
 const subdirCache = new Map<string, { time: number; entries: DirEntry[] }>();
@@ -99,8 +97,7 @@ export function findDirectories(prefix: string, cwd: string, maxResults = 30): D
 function direntToEntry(baseDir: string, dirent: fs.Dirent): DirEntry | null {
   let isDir: boolean;
   try {
-    // isDirectory() on a Dirent uses the stat info already fetched by
-    // readdir, so this is cheap. Symlinks need a follow-up stat.
+    // Dirent.isDirectory() is stat-free; only symlinks need a follow-up stat.
     if (dirent.isSymbolicLink()) {
       isDir = fs.statSync(path.join(baseDir, dirent.name)).isDirectory();
     } else {

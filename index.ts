@@ -3,9 +3,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { handleMoveCommand } from "./src/move.js";
 
 export default function piMoveExtension(pi: ExtensionAPI): void {
-  // Clean up empty move sessions when leaving them.
-  // Uses in-memory entries (always current — appended before persist)
-  // and only deletes sessions with no real user/assistant messages.
+  // Delete move-created sessions that ended up with no real messages.
   pi.on("session_shutdown", (event, ctx) => {
     // Never delete on reload — the user is coming back, not leaving.
     if (event.reason === "reload") return;
