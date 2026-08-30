@@ -81,27 +81,27 @@ async function switchToNewSession(targetDir: string, ctx: ExtensionCommandContex
   try {
     // So usesDefaultSessionDir() holds and /resume Tab lists this session.
     const newSession = SessionManager.create(targetDir);
+    const header = newSession.getHeader();
     const sessionFile = newSession.getSessionFile();
-
-    if (!sessionFile) {
+    if (!header || !sessionFile) {
       ctx.ui.notify("Failed to create new session", "error");
       return;
     }
 
-    const sessionId = newSession.getSessionId();
-    const header = {
-      type: "session",
-      version: 3,
-      id: sessionId,
-      timestamp: new Date().toISOString(),
-      cwd: targetDir,
-    };
-
-    // recursive: true is a no-op when the directory already exists
-    fs.mkdirSync(newSession.getSessionDir(), { recursive: true });
-
+    // The header must be on disk before switching: pi derives the new session's
+    // cwd from it and would otherwise fall back to the current directory.
     fs.writeFileSync(sessionFile, JSON.stringify(header) + "\n", "utf-8");
-    await ctx.switchSession(sessionFile);
+
+    const result = await ctx.switchSession(sessionFile);
+    if (result.cancelled) {
+      // Never became current, so the empty-session reaper will not collect it.
+      try {
+        fs.unlinkSync(sessionFile);
+      } catch {
+        /* already gone */
+      }
+      ctx.ui.notify("Move cancelled", "info");
+    }
   } catch (err) {
     ctx.ui.notify(`Failed to move: ${err instanceof Error ? err.message : String(err)}`, "error");
   }
