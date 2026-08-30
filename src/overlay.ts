@@ -141,15 +141,12 @@ export class MoveOverlay implements Focusable {
     const cell = (inner: string) => border("│") + inner + border("│");
     const blank = cell(" ".repeat(innerW));
 
-    // Top border with title.
     lines.push(this.renderTopBorder(innerW));
     lines.push(blank);
 
-    // Input line.
     lines.push(cell(this.renderInput(innerW)));
     lines.push(blank);
 
-    // Results.
     const visible = this.results.slice(0, this.maxResults);
     const hasMore = this.results.length > this.maxResults;
 
@@ -301,15 +298,13 @@ export class MoveOverlay implements Focusable {
     const th = this.theme;
     let title = ` ${this.title} `;
     let titleW = visibleWidth(title);
-    // On very narrow terminals the title itself may not fit — truncate it so
-    // the border always closes at exactly innerW + 2 columns.
+    // Narrow terminals: truncate the title so the border still closes.
     const maxTitleW = innerW - 2;
     if (titleW > maxTitleW) {
       title = truncateToWidth(title, Math.max(1, maxTitleW), "...", true);
       titleW = visibleWidth(title);
     }
-    // Center the title. Title is pure ASCII, so visibleWidth always matches
-    // what the terminal draws — the top border can never drift off the box.
+    // Title is pure ASCII, so visibleWidth matches the drawn width — no border drift.
     let leftDash = Math.max(1, Math.floor((innerW - titleW) / 2));
     let rightDash = innerW - titleW - leftDash;
     if (rightDash < 1) {
