@@ -1,45 +1,32 @@
 {
-  "name": "@k3_2o/pi-move",
-  "version": "0.1.8",
-  "description": "Pi extension \u2014 /move command to switch directories from inside Pi",
-  "keywords": [
-    "pi-package",
-    "extension",
-    "directory",
-    "navigation"
-  ],
-  "author": "k3_2o",
-  "license": "MIT",
-  "type": "module",
-  "scripts": {
-    "fmt": "prettier --write '{index.ts,src/*.ts}'",
-    "fmt:check": "prettier --check '{index.ts,src/*.ts}'",
-    "lint": "eslint 'index.ts' 'src/*.ts'",
-    "typecheck": "tsc --noEmit",
-    "check": "npm run fmt:check && npm run lint && npm run typecheck",
-    "security": "npm audit --audit-level=high"
-  },
-  "devDependencies": {
-    "@types/node": "^26.1.1",
-    "eslint": "^9.0.0",
-    "prettier": "^3.5.3",
-    "typescript": "^5.7.0",
-    "typescript-eslint": "^8.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/k3-2o/pi-move.git"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "pi": {
-    "extensions": [
-      "./index.ts"
-    ]
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*"
-  }
+	"name": "@k3_2o/pi-move",
+	"version": "0.2.0",
+	"type": "module",
+	"description": "Pi extension - /cd to switch directories, /move to relocate the current session",
+	"keywords": ["pi-package", "extension", "directory", "navigation", "session", "relocation"],
+	"author": "k3_2o",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/k3-2o/pi-move.git"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": ["index.ts", "src", "README.md"],
+	"pi": {
+		"extensions": ["./index.ts"]
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-coding-agent": "^1.0.1",
+		"@earendil-works/pi-tui": "^1.0.1"
+	},
+	"devDependencies": {
+		"@types/node": "^26.1.1",
+		"fast-check": "4.10.2",
+		"oxfmt": "0.71.0",
+		"oxlint": "1.86.0",
+		"publint": "^0.3.25",
+		"typescript": "7.0.2"
+	}
 }

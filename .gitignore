@@ -1,8 +1,9 @@
 node_modules/
 dist/
+coverage/
+package-lock.json
 .env
 *.log
 .DS_Store
 .vscode/
 .chrollo/
-bun.lock
