@@ -8,7 +8,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { createSessionInDir } from '../src/session/factory.ts';
-import { isDeadSession, registerCreatedSession, unregisterSession } from '../src/session/cleanup.ts';
+import { isDeadSession } from '../src/session/cleanup.ts';
 
 let root: string;
 let bucket: string;
@@ -66,15 +66,13 @@ describe('createSessionInDir', () => {
 });
 
 describe('isDeadSession', () => {
-	test('registered empty session is dead', () => {
+	test('empty session is dead', () => {
 		const created = createSessionInDir(dirB, { sessionDir: bucket });
-		registerCreatedSession(created.file);
 		expect(isDeadSession(managerFor(created.file))).toBe(true);
 	});
 
-	test('registered session that received a message is alive', () => {
+	test('session that received a message is alive', () => {
 		const created = createSessionInDir(dirB, { sessionDir: bucket });
-		registerCreatedSession(created.file);
 		// Simulate a persisted user message appended to the session file.
 		const entry = {
 			type: 'message',
@@ -87,16 +85,17 @@ describe('isDeadSession', () => {
 		expect(isDeadSession(managerFor(created.file))).toBe(false);
 	});
 
-	test('unregistered empty session is never reaped (not ours)', () => {
+	test('moved session (pi-move marker) is untouchable even when empty', () => {
 		const created = createSessionInDir(dirB, { sessionDir: bucket });
-		expect(isDeadSession(managerFor(created.file))).toBe(false);
-	});
-
-	test('unregister flips a dead session back to untouchable', () => {
-		const created = createSessionInDir(dirB, { sessionDir: bucket });
-		registerCreatedSession(created.file);
-		expect(isDeadSession(managerFor(created.file))).toBe(true);
-		unregisterSession(created.file);
+		const marker = {
+			type: 'custom',
+			customType: 'pi-move',
+			id: 'mv1',
+			parentId: null,
+			timestamp: '2026-01-01T00:00:00.000Z',
+			data: { from: dirA, to: dirB },
+		};
+		fs.appendFileSync(created.file, JSON.stringify(marker) + '\n');
 		expect(isDeadSession(managerFor(created.file))).toBe(false);
 	});
 

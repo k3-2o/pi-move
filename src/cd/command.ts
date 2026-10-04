@@ -7,7 +7,7 @@ import { resolveTarget, targetContext } from './executor.ts';
 
 export function registerCdCommand(pi: ExtensionAPI): void {
 	pi.registerCommand('cd', {
-		description: 'Switch to a different directory — starts a fresh Pi session in the target directory',
+		description: 'Switch to a different directory',
 		getArgumentCompletions: (_prefix: string): null => {
 			return null;
 		},

@@ -1,33 +1,29 @@
-/** Reap only cd-created sessions that never held a conversation; moved/resumed/foreign are untouchable. */
-import type { ExtensionAPI, SessionEntry } from '@earendil-works/pi-coding-agent';
+/** Reap session files that never held a conversation; moved sessions carry a pi-move marker. */
+import * as fs from 'node:fs';
+import type { CustomEntry, ExtensionAPI, SessionEntry } from '@earendil-works/pi-coding-agent';
 import { removeFileBestEffort } from '../fs/cache.ts';
 
 interface SessionLike {
 	getSessionFile(): string | undefined;
-	getLeafId(): string | null;
 	getEntries(): SessionEntry[];
 }
 
-/** Session files this runtime created via /cd that may still be empty. */
-const createdSessions = new Set<string>();
-
-export function registerCreatedSession(file: string): void {
-	createdSessions.add(file);
-}
-
-export function unregisterSession(file: string): void {
-	createdSessions.delete(file);
-}
-
-/** O(1) in the common case; the message scan stays authoritative. */
-export function isDeadSession(sm: SessionLike): boolean {
-	const file = sm.getSessionFile();
-	if (!file || !createdSessions.has(file)) return false;
-	if (sm.getLeafId() === null) return true;
-	const hasRealMessages = sm
+/** True once the session holds a user or assistant message; pi never persists a file without one. */
+export function hasRealMessages(sm: Pick<SessionLike, 'getEntries'>): boolean {
+	return sm
 		.getEntries()
 		.some((e) => e.type === 'message' && (e.message.role === 'user' || e.message.role === 'assistant'));
-	return !hasRealMessages;
+}
+
+function hasMovedMarker(sm: SessionLike): boolean {
+	return sm.getEntries().some((e): e is CustomEntry => e.type === 'custom' && e.customType === 'pi-move');
+}
+
+export function isDeadSession(sm: SessionLike): boolean {
+	const file = sm.getSessionFile();
+	if (!file || !fs.existsSync(file)) return false;
+	if (hasMovedMarker(sm)) return false;
+	return !hasRealMessages(sm);
 }
 
 export function registerReaper(pi: ExtensionAPI): void {
@@ -37,7 +33,6 @@ export function registerReaper(pi: ExtensionAPI): void {
 		if (!isDeadSession(ctx.sessionManager)) return;
 		const file = ctx.sessionManager.getSessionFile();
 		if (!file) return;
-		unregisterSession(file);
 		removeFileBestEffort(file);
 	});
 }

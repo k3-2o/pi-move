@@ -1,17 +1,19 @@
 /** /move: relocate session + switch in-process; pi rebuilds the runtime from the new header cwd, so project config loads. */
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import * as fs from 'node:fs';
 import { resolveCollisionFreeFile, computeMoveDestination } from './destination.ts';
 import { relocateSession } from './relocate.ts';
 import { cdTo } from '../cd/command.ts';
 import { resolveTarget, targetContext } from '../cd/executor.ts';
 import { removeFileBestEffort } from '../fs/cache.ts';
 import { shortenPath } from '../fs/path.ts';
+import { hasRealMessages } from '../session/cleanup.ts';
 import { notifyBestEffort } from '../session/switch.ts';
 import { pickTarget } from '../ui/overlay.ts';
 
 export function registerMoveCommand(pi: ExtensionAPI): void {
 	pi.registerCommand('move', {
-		description: 'Move this session to another directory — relocates the session file and reloads project config there',
+		description: 'Move this session to another directory',
 		getArgumentCompletions: (_prefix: string): null => {
 			return null;
 		},
@@ -30,8 +32,14 @@ export function registerMoveCommand(pi: ExtensionAPI): void {
 			if (rawTarget === undefined) return;
 
 			// Nothing to move — degrade into a plain /cd.
-			if (sm.getLeafId() === null) {
+			if (!hasRealMessages(sm)) {
 				await cdTo(rawTarget, ctx, sourceFile);
+				return;
+			}
+
+			// pi writes no file until a conversation exists — nothing to relocate.
+			if (!fs.existsSync(sourceFile)) {
+				ctx.ui.notify('No persistent session to move', 'error');
 				return;
 			}
 
