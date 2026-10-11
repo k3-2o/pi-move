@@ -56,11 +56,14 @@ describe('resolveTarget', () => {
 		expect(fs.existsSync(path.join(cwd, 'nope-nope'))).toBe(false);
 	});
 
-	test('parent missing → error, no create', async () => {
-		const ctx = makeCtx();
+	test('deeply nested missing path prompts once and creates the whole chain (mkdir -p)', async () => {
+		let promptCount = 0;
+		const ctx = makeCtx({ confirmCreate: async () => ((promptCount += 1), true) });
 		const target = await resolveTarget('bogus/deep', ctx);
-		expect(target).toBeNull();
-		expect(ctx.notified.some(([m, l]) => l === 'error' && m.includes('parent directory does not exist'))).toBe(true);
+		expect(target).toBe(path.join(cwd, 'bogus', 'deep'));
+		expect(fs.statSync(target!).isDirectory()).toBe(true);
+		expect(fs.statSync(path.join(cwd, 'bogus')).isDirectory()).toBe(true);
+		expect(promptCount).toBe(1);
 	});
 
 	test("file target → 'not a directory' error", async () => {

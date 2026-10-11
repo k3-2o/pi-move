@@ -14,7 +14,6 @@ const prefixGen2 = fc.array(fc.constantFrom(...PATH_CHARS), { maxLength: 30 }).m
 
 const factsGen = fc.record<TargetFacts>({
 	existence: fc.constantFrom('dir', 'not-dir', 'missing'),
-	parentIsDirectory: fc.boolean(),
 });
 
 describe('planTarget classification', () => {
@@ -30,7 +29,7 @@ describe('planTarget classification', () => {
 	test('existing dir -> use, never create; target echoed', () => {
 		fc.assert(
 			fc.property(fc.string({ maxLength: 30 }), (cand) => {
-				const plan = planTarget(cand, { existence: 'dir', parentIsDirectory: true });
+				const plan = planTarget(cand, { existence: 'dir' });
 				return plan.kind === 'use' && plan.target === cand;
 			}),
 		);
@@ -50,23 +49,21 @@ describe('planTarget classification', () => {
 		);
 	});
 
-	test('creation requires a missing path AND an existing parent', () => {
+	test('creation requires a missing path', () => {
 		fc.assert(
 			fc.property(factsGen, fc.string({ maxLength: 30 }), (facts, cand) => {
 				const plan = planTarget(cand, facts);
 				if (plan.kind !== 'create') return true;
-				return facts.existence === 'missing' && facts.parentIsDirectory;
+				return facts.existence === 'missing';
 			}),
 		);
 	});
 
-	test('missing path handles both parent outcomes consistently', () => {
+	test('missing path is always creatable (mkdir -p semantics)', () => {
 		fc.assert(
-			fc.property(fc.boolean(), fc.string({ maxLength: 30 }), (parentIsDirectory, cand) => {
-				const plan = planTarget(cand, { existence: 'missing', parentIsDirectory });
-				return parentIsDirectory
-					? plan.kind === 'create'
-					: plan.kind === 'invalid' && (plan as Extract<TargetPlan, { kind: 'invalid' }>).reason === 'parent-missing';
+			fc.property(fc.string({ maxLength: 30 }), (cand) => {
+				const plan = planTarget(cand, { existence: 'missing' });
+				return plan.kind === 'create';
 			}),
 		);
 	});

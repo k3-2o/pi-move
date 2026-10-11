@@ -6,18 +6,17 @@ import { resolveCandidatePath } from '../fs/path.ts';
 export type TargetPlan =
 	| { kind: 'use'; target: string }
 	| { kind: 'create'; target: string }
-	| { kind: 'invalid'; target: string; reason: 'not-directory' | 'parent-missing' };
+	| { kind: 'invalid'; target: string; reason: 'not-directory' };
 
 export interface TargetFacts {
 	existence: Existence;
-	parentIsDirectory: boolean;
 }
 
-/** Classify a candidate path over caller-supplied fs facts. */
+/** Classify a candidate over caller-supplied fs facts. Missing paths are
+ *  always creatable — mkdir -p builds any missing parent chain. */
 export function planTarget(candidate: string, facts: TargetFacts): TargetPlan {
 	if (facts.existence === 'dir') return { kind: 'use', target: candidate };
 	if (facts.existence === 'not-dir') return { kind: 'invalid', target: candidate, reason: 'not-directory' };
-	if (!facts.parentIsDirectory) return { kind: 'invalid', target: candidate, reason: 'parent-missing' };
 	return { kind: 'create', target: candidate };
 }
 
