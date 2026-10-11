@@ -94,6 +94,15 @@ describe('MoveOverlay rendering', () => {
 		}
 	});
 
+	test('tab completion appends a trailing separator to directories', () => {
+		const overlay = new MoveOverlay(th, cwd, () => {});
+		overlay.handleInput('a');
+		overlay.handleInput('\t');
+		// Trailing / lets typing refine inside the completed directory and the
+		// next Tab list its children, matching shell completion behavior.
+		expect(strip((overlay as unknown as { model: { text: string } }).model.text)).toBe(path.join(cwd, 'alpha') + '/');
+	});
+
 	test('selection completes with the selected directory', () => {
 		let picked: PickedDirectory | undefined;
 		const overlay = new MoveOverlay(th, cwd, (r) => (picked = r));

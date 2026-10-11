@@ -211,7 +211,8 @@ export class MoveOverlay implements Focusable {
 	private acceptCompletion(): void {
 		const selected = this.results[this.selectedIndex];
 		if (!selected) return;
-		this.model.setText(selected.value);
+		const completed = selected.value.endsWith('/') ? selected.value : selected.value + '/';
+		this.model.setText(completed);
 		this.afterEdit();
 	}
 
